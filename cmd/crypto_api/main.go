@@ -2,10 +2,20 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"net"
+	"net/http"
 	"os"
+	"time"
 
-	"github.com/trustwallet/wallet-core"
+	"github.com/default23/crypto-api/application/transaction/transport/rpc"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 
+	transactionendpoint "github.com/default23/crypto-api/application/transaction/endpoint"
+	"github.com/default23/crypto-api/application/transaction/service"
+	transactionHTTP "github.com/default23/crypto-api/application/transaction/transport/http"
+	"github.com/default23/crypto-api/domain"
 	"github.com/default23/crypto-api/infrastructure/config"
 	"github.com/default23/crypto-api/infrastructure/logging"
 )
@@ -33,5 +43,57 @@ func main() {
 		return
 	}
 
-	logger.Info(cfg)
+	seed, err := domain.NewSeed(cfg.Seed)
+	if err != nil {
+		panic(fmt.Sprintf("seed is invalid: %s", err))
+	}
+
+	go startJSONRPC(*cfg, logger, seed)
+
+	router := configureRouter(*cfg, logger, seed)
+
+	srv := &http.Server{
+		Handler:      router,
+		Addr:         cfg.Server.Addr(),
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	logger.Fatal(srv.ListenAndServe())
+}
+
+func startJSONRPC(c config.Config, logger *logrus.Entry, seed domain.Seed) {
+	if c.Server.JsonRPCPort == "" {
+		return
+	}
+
+	httpListener, err := net.Listen("tcp", fmt.Sprintf(":%s", c.Server.JsonRPCPort))
+	if err != nil {
+		logger.WithError(err).Error("failed to start listening on address: %s", c.Server.JsonRPCPort)
+		return
+	}
+
+	transactionService := service.NewTransactionService(seed)
+	transactionEndpoints := transactionendpoint.NewEndpoints(transactionService)
+	jsonrpcHandler := rpc.NewJSONRPCHandler(transactionEndpoints, logger)
+
+	logger.Fatal(http.Serve(httpListener, jsonrpcHandler))
+}
+
+func configureRouter(c config.Config, logger *logrus.Entry, seed domain.Seed) *mux.Router {
+	router := mux.NewRouter()
+	router.Use(logging.WithLoggerMiddleware(logger))
+
+	v1Router := router.PathPrefix("/api/v1").Subrouter()
+
+	// configure transaction layer
+	{
+		transactionService := service.NewTransactionService(seed)
+		transactionEndpoints := transactionendpoint.NewEndpoints(transactionService)
+		transactionHTTPHandlers := transactionHTTP.NewHTTPHandler(transactionEndpoints)
+
+		transactionHTTPHandlers.Register(v1Router)
+	}
+
+	return router
 }
