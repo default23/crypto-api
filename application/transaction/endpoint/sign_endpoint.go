@@ -68,9 +68,9 @@ type EthereumTransaction struct {
 type BitcoinTransaction struct {
 	Utxo          []UnspentTransaction `json:"utxo"`
 	ToAddress     string               `json:"toAddress"`
-	ChangeAddress string               `json:"changeAddress"`
+	ChangeAddress string               `json:"ChangeAddress"`
 	ByteFee       int                  `json:"byteFee"`
-	Amount        string               `json:"amount"`
+	Amount        string               `json:"Amount"`
 }
 
 func mapRequestToTxIO(req SignRequest) (transaction.TxIO, error) {
