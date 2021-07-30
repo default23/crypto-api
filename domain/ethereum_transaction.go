@@ -54,7 +54,7 @@ func (tx *EthereumTransaction) GetSignedOutput(signed []byte) ([]byte, error) {
 }
 
 func toByteArray(i int) []byte {
-	var out []byte
+	out := make([]byte, 32)
 	binary.BigEndian.PutUint32(out, uint32(i))
 
 	return out
