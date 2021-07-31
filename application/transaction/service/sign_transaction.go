@@ -21,6 +21,7 @@ func (s *TransactionService) Sign(ctx context.Context, gate domain.Gate, tx tran
 		logger.WithError(err).Errorf("sign transaction failed: create wallet failed for gate %s", gate)
 		return "", errors.New("unable to create the wallet from seed")
 	}
+	defer wallet.Free()
 
 	in, err := tx.SignInput(wallet)
 	if err != nil {
