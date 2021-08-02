@@ -52,12 +52,12 @@ func main() {
 		},
 		EthereumTransactionRequest: endpoint.EthereumTransactionRequest{
 			Tx: endpoint.EthereumTransaction{
-				ChainID:   1,
-				Nonce:     0,
-				GasLimit:  2100,
-				GasPrice:  100000,
-				ToAddress: "0x17A98d2b11Dfb784e63337d2170e21cf5DD04631",
-				Value:     12410,
+				ChainID:   3,
+				Nonce:     1,
+				GasLimit:  21000,
+				GasPrice:  5000000000,
+				ToAddress: "0x7788944b6dcd32f8a3042b817cfe7c5588382bd3",
+				Value:     133700000000000001,
 			},
 		},
 	}

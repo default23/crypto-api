@@ -28,11 +28,11 @@ curl --location --request POST 'localhost:8080/api/v1/sign_transaction' \
   --data-raw '{
    "gate":"ethereum",
    "tx":{
-      "chainId": 1,
-      "nonce": 0,
-      "gasLimit": 2100,
-      "gasPrice": 1000000000,
-      "toAddress": "0x17A98d2b11Dfb784e63337d2170e21cf5DD04631",
-      "value": 12410
+      "chainId": 3,
+      "nonce": 1,
+      "gasLimit": 21000,
+      "gasPrice": 5000000000,
+      "toAddress": "0x7788944b6dcd32f8a3042b817cfe7c5588382bd3",
+      "value": 133700000000000001
    }
 }'

@@ -1,8 +1,7 @@
 package domain
 
 import (
-	"encoding/hex"
-	"fmt"
+	"math/big"
 	"unsafe"
 
 	"github.com/default23/crypto-api/domain/protos/ethereum"
@@ -21,16 +20,16 @@ type EthereumTransaction struct {
 
 func (tx EthereumTransaction) SignInput(w Wallet) ([]byte, error) {
 	input := ethereum.SigningInput{
-		ChainId:    toHex(tx.ChainID),
-		Nonce:      toHex(tx.Nonce),
-		GasPrice:   toHex(tx.GasPrice),
-		GasLimit:   toHex(tx.GasLimit),
+		ChainId:    big.NewInt(int64(tx.ChainID)).Bytes(),
+		Nonce:      big.NewInt(int64(tx.Nonce)).Bytes(),
+		GasPrice:   big.NewInt(int64(tx.GasPrice)).Bytes(),
+		GasLimit:   big.NewInt(int64(tx.GasLimit)).Bytes(),
 		ToAddress:  tx.ToAddress,
 		PrivateKey: twutil.TWDataGoBytes(unsafe.Pointer(w.GetPrivateKey())),
 		Transaction: &ethereum.Transaction{
 			TransactionOneof: &ethereum.Transaction_Transfer_{
 				Transfer: &ethereum.Transaction_Transfer{
-					Amount: toHex(tx.Value),
+					Amount: big.NewInt(int64(tx.Value)).Bytes(),
 				},
 			},
 		},
@@ -52,10 +51,4 @@ func (tx *EthereumTransaction) GetSignedOutput(signed []byte) ([]byte, error) {
 	}
 
 	return output.Encoded, nil
-}
-
-func toHex(i int) []byte {
-	// skip errors, because it will be always valid hex string
-	h, _ := hex.DecodeString(fmt.Sprintf("%x", i))
-	return h
 }
